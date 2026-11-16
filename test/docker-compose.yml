@@ -1,0 +1,15 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Kopírování souborů závislostí
+COPY package*.json ./
+
+# Instalace závislostí
+RUN npm install
+
+# Kopírování zbytku kódu
+COPY . .
+
+# Spuštění skriptu
+CMD ["node", "index.js"]

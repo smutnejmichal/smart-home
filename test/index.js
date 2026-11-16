@@ -1,43 +1,48 @@
 const { InfluxDB, Point } = require('@influxdata/influxdb-client');
 
-// Připojení k InfluxDB (pokud běží v Dockeru na stejném stroji, localhost:8086 funguje, 
-// protože skript pouštíte zvenku z hostitelského systému)
-const url = 'http://localhost:8086';
+// Připojení k InfluxDB
+const url = 'http://192.168.5.22:8086'; // případně 'http://localhost:8086'
 const token = 'OG-L1Roy5K2-cgxkOEvryETLnv53xutAGTFvuHBA1F6ccQpdxp4Lqr9UTmIzwwKNbkYzgG4_JT5ApS-DYGvE6w==';
 const org = 'myorg';
-const bucket = 'mybucket';
+const bucket = 'smart-home-data'; // Název vašeho nového bucketu
 
-const influxDB = new InfluxDB({ url, token });
-const writeApi = influxDB.getWriteApi(org, bucket, 's'); // 's' znamená sekundová přesnost
+const client = new InfluxDB({ url, token });
+const writeClient = client.getWriteApi(org, bucket, 's'); // 's' = sekundová přesnost
 
-console.log('Spouštím odesílání náhodných dat do InfluxDB každou sekundu...');
+console.log(`Spouštím generování reálných dat do bucketu '${bucket}'...`);
+console.log('Pro ukončení stiskněte Ctrl+C.\n');
 
-// Funkce, která se provede každou sekundu
+// Funkce, která se spustí každou sekundu
 setInterval(() => {
-    // Generování náhodných hodnot (např. teplota 20-30 °C, vlhkost 40-70 %)
-    const teplota = (Math.random() * 10 + 20).toFixed(2);
-    const vlhkost = (Math.random() * 30 + 40).toFixed(2);
+  // Generování náhodných, uvěřitelných hodnot pro smart home
+  const teplota = (Math.random() * 5 + 21).toFixed(2);       // 21.00 až 26.00 °C
+  const vlhkost = (Math.random() * 20 + 40).toFixed(2);      // 40.00 až 60.00 %
+  const spotrebaW = Math.floor(Math.random() * 500 + 50);    // 50 až 550 Wattů
+  const svetloZapnuto = Math.random() > 0.5 ? true : false;  // Náhodně true/false
 
-    // Vytvoření bodu (měření 'domacnost')
-    const point = new Point('domacnost')
-        .tag('senzor', 'obvak')
-        .floatField('teplota', parseFloat(teplota))
-        .floatField('vlhkost', parseFloat(vlhkost));
+  // Vytvoření bodu (measurement = 'environment' a 'devices')
+  const point = new Point('smart_home_sensors')
+    .tag('room', 'living_room')
+    .floatField('temperature', parseFloat(teplota))
+    .floatField('humidity', parseFloat(vlhkost))
+    .intField('power_consumption_w', spotrebaW)
+    .booleanField('light_on', svetloZapnuto);
 
-    // Zápis do InfluxDB
-    writeApi.writePoint(point);
+  // Zápis bodu
+  writeClient.writePoint(point);
 
-    console.log(`Odesláno -> Teplota: ${teplota} °C, Vlhkost: ${vlhkost} %`);
+  console.log(`[Odesláno] Teplota: ${teplota} °C | Vlhkost: ${vlhkost} % | Spotřeba: ${spotrebaW} W | Světlo: ${svetloZapnuto}`);
 }, 1000);
 
-// Ukončení skriptu (bezpečný zápis zbývajících dat při vypnutí)
+// Bezpečné ukončení skriptu při stisknutí Ctrl+C
 process.on('SIGINT', async () => {
-    try {
-        await writeApi.close();
-        console.log('\nZápis do InfluxDB byl ukončen.');
-        process.exit(0);
-    } catch (e) {
-        console.error('Chyba při zavírání Influx klienta:', e);
-        process.exit(1);
-    }
+  console.log('\nUkládám zbývající data a končím...');
+  try {
+    await writeClient.close();
+    console.log('Hotovo.');
+    process.exit(0);
+  } catch (e) {
+    console.error('Chyba při zavírání:', e);
+    process.exit(1);
+  }
 });
