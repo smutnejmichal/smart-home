@@ -16,7 +16,7 @@ services:
       DOCKER_INFLUXDB_INIT_ORG: myorg
       DOCKER_INFLUXDB_INIT_BUCKET: mybucket
       DOCKER_INFLUXDB_INIT_RETENTION: 30d
-      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: my-super-secret-auth-token
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: OG-L1Roy5K2-cgxkOEvryETLnv53xutAGTFvuHBA1F6ccQpdxp4Lqr9UTmIzwwKNbkYzgG4_JT5ApS-DYGvE6w==
     volumes:
       - influxdb-data:/var/lib/influxdb2
       - influxdb-config:/etc/influxdb2
@@ -44,7 +44,7 @@ services:
       GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /etc/grafana/dashboards/smarthome.json
       INFLUX_ORG: myorg
       INFLUX_BUCKET: mybucket
-      INFLUX_TOKEN: my-super-secret-auth-token
+      INFLUX_TOKEN: OG-L1Roy5K2-cgxkOEvryETLnv53xutAGTFvuHBA1F6ccQpdxp4Lqr9UTmIzwwKNbkYzgG4_JT5ApS-DYGvE6w==
     volumes:
       - ../grafana/provisioning:/etc/grafana/provisioning:ro
       - ../grafana/dashboards:/etc/grafana/dashboards:ro
