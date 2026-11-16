@@ -1,9 +1,12 @@
-# InfluxDB 2 + Grafana pro Smart Home (bez nutnosti .env souboru)
+# InfluxDB 2 + Grafana pro Smart Home (Flux + Statické IP adresy)
 services:
   influxdb:
     image: influxdb:2.7
     container_name: smarthome-influxdb
     restart: unless-stopped
+    networks:
+      smarthome_net:
+        ipv4_address: 172.20.0.10
     ports:
       - "8086:8086"
     environment:
@@ -27,6 +30,9 @@ services:
     image: grafana/grafana:11.2.0
     container_name: smarthome-grafana
     restart: unless-stopped
+    networks:
+      smarthome_net:
+        ipv4_address: 172.20.0.20
     depends_on:
       influxdb:
         condition: service_healthy
@@ -43,6 +49,13 @@ services:
       - ../grafana/provisioning:/etc/grafana/provisioning:ro
       - ../grafana/dashboards:/etc/grafana/dashboards:ro
       - grafana-data:/var/lib/grafana
+
+networks:
+  smarthome_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
 
 volumes:
   influxdb-data:
